@@ -472,6 +472,8 @@ export default function App() {
           onClose={() => setIsSettingsOpen(false)}
           installedModels={installedModels}
           onRefreshModels={fetchInstalledModels}
+          topK={topK}
+          setTopK={setTopK}
         />
       )}
     </div>

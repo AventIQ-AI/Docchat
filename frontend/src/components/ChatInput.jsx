@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Plus, ArrowUp, X, FileText, Sliders } from 'lucide-react';
+import { Plus, ArrowUp, X, FileText } from 'lucide-react';
 
 export default function ChatInput({ 
   input, 
@@ -7,9 +7,7 @@ export default function ChatInput({
   attachedFiles,
   setAttachedFiles,
   onSend, 
-  isLoading, 
-  topK, 
-  setTopK
+  isLoading
 }) {
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -76,7 +74,7 @@ export default function ChatInput({
           disabled={isLoading}
         />
 
-        {/* Capsule Bottom Control Bar (Clean Layout) */}
+        {/* Capsule Bottom Control Bar */}
         <div className="capsule-bottom-bar">
           {/* Left: Round '+' attachment button */}
           <input 
@@ -94,22 +92,6 @@ export default function ChatInput({
           >
             <Plus size={18} />
           </button>
-
-          {/* Center: Top-K Selector Pill */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <div 
-              className="badge-item"
-              onClick={() => {
-                const newK = prompt("Enter Top-K document chunks to retrieve (1-15):", topK);
-                if (newK && !isNaN(newK)) setTopK(Math.max(1, Math.min(15, parseInt(newK, 10))));
-              }}
-              title="Click to adjust Top-K retrieval count"
-              style={{ cursor: 'pointer' }}
-            >
-              <Sliders size={12} style={{ opacity: 0.7 }} />
-              <span>Top-K: {topK}</span>
-            </div>
-          </div>
 
           {/* Right: Dark round '↑' Send button */}
           <button 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Cpu, Download, CheckCircle2, Loader2, Sparkles, FileText } from 'lucide-react';
+import { X, Cpu, Download, CheckCircle2, Loader2, Sparkles, FileText, Sliders } from 'lucide-react';
 
 export const DEFAULT_MODELS = [
   { id: 'qwen2.5:1.5b', name: 'Qwen 2.5 1.5B', badge: 'Fast (1.1GB RAM)', tag: 'Recommended' },
@@ -13,10 +13,11 @@ export default function SettingsModal({
   onClose, 
   installedModels = [], 
   onRefreshModels,
-  onOpenModelManagement
+  topK = 5,
+  setTopK
 }) {
   const [pullingModel, setPullingModel] = useState(null);
-  const [activeTab, setActiveTab] = useState('models');
+  const [activeTab, setActiveTab] = useState('models'); // 'models' | 'retrieval'
 
   const handlePullModel = async (modelId) => {
     setPullingModel(modelId);
@@ -53,23 +54,31 @@ export default function SettingsModal({
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid var(--border-subtle)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600, fontSize: '1.1rem' }}>
             <Cpu size={18} style={{ color: 'var(--accent-teal)' }} />
-            <span>Settings & Model Management</span>
+            <span>Settings & Application Configuration</span>
           </div>
           <button className="icon-btn-ghost" onClick={onClose}>
             <X size={18} />
           </button>
         </div>
 
-        {/* Tab / Action Bar */}
+        {/* Tab Selection Bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button 
               className={`badge-item ${activeTab === 'models' ? 'active' : ''}`}
               onClick={() => setActiveTab('models')}
-              style={{ padding: '6px 12px', fontSize: '0.85rem' }}
+              style={{ padding: '6px 12px', fontSize: '0.85rem', cursor: 'pointer' }}
             >
               <Sparkles size={14} />
               <span>Model Management</span>
+            </button>
+            <button 
+              className={`badge-item ${activeTab === 'retrieval' ? 'active' : ''}`}
+              onClick={() => setActiveTab('retrieval')}
+              style={{ padding: '6px 12px', fontSize: '0.85rem', cursor: 'pointer' }}
+            >
+              <Sliders size={14} />
+              <span>Retrieval & Top-K</span>
             </button>
           </div>
 
@@ -85,60 +94,106 @@ export default function SettingsModal({
           </a>
         </div>
 
-        {/* Model List Table */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', overflowY: 'auto', maxHeight: '380px' }}>
-          {DEFAULT_MODELS.map((model) => {
-            const downloaded = isInstalled(model.id);
-            const isPulling = pullingModel === model.id;
+        {/* Tab Content 1: Model List Table */}
+        {activeTab === 'models' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', overflowY: 'auto', maxHeight: '380px' }}>
+            {DEFAULT_MODELS.map((model) => {
+              const downloaded = isInstalled(model.id);
+              const isPulling = pullingModel === model.id;
 
-            return (
-              <div 
-                key={model.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '12px 14px',
-                  borderRadius: '12px',
-                  backgroundColor: 'var(--bg-card)',
-                  border: '1px solid var(--border-subtle)',
-                }}
-              >
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span>{model.name}</span>
-                    <span className="model-tag-badge">{model.tag}</span>
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                    Tag: <code>{model.id}</code> • {model.badge}
-                  </div>
-                </div>
-
-                <div>
-                  {downloaded ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#10b981', fontSize: '0.8rem', fontWeight: 600 }}>
-                      <CheckCircle2 size={16} />
-                      <span>Downloaded</span>
+              return (
+                <div 
+                  key={model.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '12px 14px',
+                    borderRadius: '12px',
+                    backgroundColor: 'var(--bg-card)',
+                    border: '1px solid var(--border-subtle)',
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span>{model.name}</span>
+                      <span className="model-tag-badge">{model.tag}</span>
                     </div>
-                  ) : (
-                    <button 
-                      className="theme-toggle-btn"
-                      onClick={() => handlePullModel(model.id)}
-                      disabled={isPulling}
-                      style={{ padding: '5px 10px', fontSize: '0.75rem', gap: '4px' }}
-                    >
-                      {isPulling ? <Loader2 size={13} className="spin" /> : <Download size={13} />}
-                      <span>{isPulling ? 'Downloading...' : 'Download'}</span>
-                    </button>
-                  )}
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                      Tag: <code>{model.id}</code> • {model.badge}
+                    </div>
+                  </div>
+
+                  <div>
+                    {downloaded ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#10b981', fontSize: '0.8rem', fontWeight: 600 }}>
+                        <CheckCircle2 size={16} />
+                        <span>Downloaded</span>
+                      </div>
+                    ) : (
+                      <button 
+                        className="theme-toggle-btn"
+                        onClick={() => handlePullModel(model.id)}
+                        disabled={isPulling}
+                        style={{ padding: '5px 10px', fontSize: '0.75rem', gap: '4px' }}
+                      >
+                        {isPulling ? <Loader2 size={13} className="spin" /> : <Download size={13} />}
+                        <span>{isPulling ? 'Downloading...' : 'Download'}</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Tab Content 2: Retrieval & Top-K Setting */}
+        {activeTab === 'retrieval' && (
+          <div style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
+            <div style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Sliders size={16} style={{ color: 'var(--accent-teal)' }} />
+              <span>Top-K Document Retrieval Count</span>
+            </div>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '16px', lineHeight: 1.4 }}>
+              Top-K controls how many vector text chunks from uploaded documents are retrieved and injected into the AI context per query. 
+              Increase this value (e.g., <strong>10 to 20</strong>) for multi-page documents to retrieve complete information across all pages.
+            </p>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '12px' }}>
+              <input 
+                type="range" 
+                min="1" 
+                max="20" 
+                value={topK} 
+                onChange={(e) => setTopK && setTopK(parseInt(e.target.value, 10))}
+                style={{ flex: 1, accentColor: 'var(--accent-teal)', cursor: 'pointer' }}
+              />
+              <div style={{
+                minWidth: '54px',
+                textAlign: 'center',
+                padding: '6px 12px',
+                borderRadius: '8px',
+                background: 'var(--bg-surface)',
+                border: '1px solid var(--border-subtle)',
+                fontWeight: 700,
+                fontSize: '1rem',
+                color: 'var(--accent-teal)'
+              }}>
+                {topK}
               </div>
-            );
-          })}
-        </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '8px' }}>
+              <span>1 (Fast & Focused)</span>
+              <span>10 (Balanced)</span>
+              <span>20 (Full Multi-Page Scope)</span>
+            </div>
+          </div>
+        )}
 
         <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '16px', textAlign: 'center' }}>
-          Models are stored locally in your Ollama library.
+          Models and settings are managed locally in your workspace.
         </div>
       </div>
     </div>
