@@ -116,9 +116,9 @@ def answer_question(
     except RuntimeError as exc:
         raise RuntimeError(f"Failed to embed question: {exc}") from exc
 
-    # Step 2 – vector search with optimized Top-K for CPU inference speed
+    # Step 2 – vector search with smart Top-K expansion for broad/listing queries
     is_broad_query = any(w in question.lower() for w in ["all", "how many", "total", "list", "every", "count", "invoice", "part", "summary"])
-    effective_top_k = 7 if is_broad_query else cfg.top_k
+    effective_top_k = max(cfg.top_k, 15) if is_broad_query else cfg.top_k
 
     sources: list[ChunkRecord] = vector_search(
         question_embedding, effective_top_k, cfg, doc_ids=doc_ids
