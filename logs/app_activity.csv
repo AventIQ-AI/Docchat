@@ -1,0 +1,3 @@
+datetime,module_name,action,status,details
+2026-08-30 21:29:01,RAG_PIPELINE,GENERATE_ANSWER,WARNING_OOM_FALLBACK,"model None failed: Ollama chat request timed out after 300.0s.
+Increase OLLAMA_TIMEOUT_SECONDS or try a shorter question.. Retrying with lightweight qwen2.5:1.5b"
