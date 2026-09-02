@@ -70,6 +70,15 @@ app.add_middleware(
 )
 
 
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error("Unhandled Exception on %s: %s", request.url, exc, exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": f"Server Error: {str(exc)}"},
+    )
+
+
 @app.on_event("startup")
 def startup_event() -> None:
     cfg = get_cfg()
