@@ -151,7 +151,7 @@ class IngestionItemResponse(BaseModel):
     source_path: str
     status: str
     chunk_count: int
-    error: str
+    error: Optional[str] = ""
 
 
 class IngestionSummaryResponse(BaseModel):
@@ -338,7 +338,7 @@ async def upload_documents(
                 source_path=res.source_path,
                 status=res.status.name,
                 chunk_count=res.chunk_count,
-                error=res.error,
+                error=res.error or "",
             )
         )
         log_csv("INGESTION", "FILE_UPLOAD", res.status.name, f"file: {res.file_name}, chunks: {res.chunk_count}")

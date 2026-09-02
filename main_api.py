@@ -59,7 +59,7 @@ def main() -> None:
         "app.api:app",
         host=cfg.api_host,
         port=cfg.api_port,
-        reload=False,
+        reload=True,
         log_level="info",
     )
 
