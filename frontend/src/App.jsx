@@ -205,14 +205,26 @@ export default function App() {
         const freshDocs = await fetchDocuments();
         await fetchHealth();
 
-        const uploadedSourcePaths = uploadData.results.map((r) => r.source_path);
+        // Normalize paths for cross-platform compatibility
+        const uploadedNames = uploadData.results.map((r) => r.file_name);
+        const uploadedPaths = uploadData.results.map((r) => (r.source_path || '').replace(/\\/g, '/'));
+
+        const failedItems = uploadData.results.filter((r) => r.status === 'FAILED');
+        if (failedItems.length > 0) {
+          alert(`Upload warning: ${failedItems.map((f) => f.file_name + ': ' + (f.error || 'parsing failed')).join(', ')}`);
+        }
+
         const newDocIds = freshDocs
-          .filter((d) => uploadedSourcePaths.includes(d.source_path))
+          .filter((d) => 
+            uploadedPaths.includes((d.source_path || '').replace(/\\/g, '/')) || 
+            uploadedNames.includes(d.file_name)
+          )
           .map((d) => d.id);
 
         return newDocIds;
       } else {
-        alert('Upload failed');
+        const errData = await res.json().catch(() => ({}));
+        alert(`Upload failed (${res.status}): ${errData.detail || 'Server error'}`);
       }
     } catch (err) {
       alert(`Upload error: ${err.message}`);

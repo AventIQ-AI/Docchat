@@ -370,10 +370,12 @@ def ingest_uploaded_file(file_name: str, content_bytes: bytes, cfg: Config) -> I
     if record is None:
         return _ingest_new_document(target_path, sha256, cfg)
     elif record.sha256 == sha256:
+        stats = get_knowledge_stats(cfg)
         return IngestionResult(
             file_name=file_name,
             source_path=source_path,
             status=IngestionStatus.UNCHANGED,
+            chunk_count=stats.get("chunks", 0),
         )
     else:
         return _ingest_updated_document(target_path, record.id, sha256, cfg)
