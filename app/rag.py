@@ -116,12 +116,15 @@ def answer_question(
     except RuntimeError as exc:
         raise RuntimeError(f"Failed to embed question: {exc}") from exc
 
+    # If doc_ids is an empty list, fallback to searching all indexed documents
+    search_doc_ids = doc_ids if (doc_ids and len(doc_ids) > 0) else None
+
     # Step 2 – vector search with smart Top-K expansion for broad/listing queries
     is_broad_query = any(w in question.lower() for w in ["all", "how many", "total", "list", "every", "count", "invoice", "part", "summary"])
     effective_top_k = max(cfg.top_k, 15) if is_broad_query else cfg.top_k
 
     sources: list[ChunkRecord] = vector_search(
-        question_embedding, effective_top_k, cfg, doc_ids=doc_ids
+        question_embedding, effective_top_k, cfg, doc_ids=search_doc_ids
     )
 
     # Step 3 – build context
