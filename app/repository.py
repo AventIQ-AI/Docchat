@@ -213,9 +213,13 @@ def vector_search(
     doc_ids: Optional[list[int]] = None,
 ) -> list[ChunkRecord]:
     """
-    Perform cosine similarity search in PostgreSQL via pgvector.
+    Perform cosine similarity search in ChromaDB or PostgreSQL.
     Supports optional document ID filtering (doc_ids) for session-isolated RAG.
     """
+    if getattr(cfg, "vector_db_type", "postgres") == "chroma":
+        from app.chroma_repository import vector_search_chroma
+        return vector_search_chroma(query_embedding, top_k, cfg, doc_ids=doc_ids)
+
     emb_np = np.array(query_embedding, dtype=np.float32)
     where_clause = ""
     params: list[Any] = [emb_np]
@@ -327,6 +331,13 @@ def list_indexed_documents(cfg: Config) -> list[IndexedDocSummary]:
 
 def delete_document_by_id(doc_id: int, cfg: Config) -> bool:
     """Delete a document by ID (cascade deletes associated chunks). Returns True if found and deleted."""
+    if getattr(cfg, "vector_db_type", "postgres") == "chroma":
+        try:
+            from app.chroma_repository import delete_document_chroma
+            delete_document_chroma(doc_id, cfg)
+        except Exception as chroma_exc:
+            logger.warning("ChromaDB delete warning for doc_id=%s: %s", doc_id, chroma_exc)
+
     conn = get_connection(cfg)
     try:
         with conn.cursor() as cur:

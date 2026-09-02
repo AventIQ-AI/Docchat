@@ -79,6 +79,9 @@ class Config:
     api_port: int
     cors_origins: list[str]
     api_key: str
+    # ── Vector DB Type (chroma | postgres) ──────────────────────────────────
+    vector_db_type: str
+    chroma_db_path: Path
 
     @property
     def postgres_dsn(self) -> str:
@@ -98,6 +101,9 @@ def load_config() -> Config:
     raw_folder = os.getenv("DOCUMENTS_FOLDER", "./documents")
     documents_folder = Path(raw_folder).expanduser()
 
+    raw_chroma_folder = os.getenv("CHROMA_DB_PATH", "./chroma_db")
+    chroma_db_path = Path(raw_chroma_folder).expanduser()
+
     raw_cors = os.getenv("CORS_ORIGINS", "*")
     cors_origins = [origin.strip() for origin in raw_cors.split(",") if origin.strip()]
 
@@ -112,6 +118,8 @@ def load_config() -> Config:
         postgres_user=os.getenv("POSTGRES_USER", "rag_user"),
         postgres_password=os.getenv("POSTGRES_PASSWORD", "rag_password"),
         documents_folder=documents_folder,
+        vector_db_type=os.getenv("VECTOR_DB_TYPE", "chroma").lower().strip(),
+        chroma_db_path=chroma_db_path,
         top_k=_get_int("TOP_K", 5),
         chunk_size=_get_int("CHUNK_SIZE", 1200),
         chunk_overlap=_get_int("CHUNK_OVERLAP", 200),

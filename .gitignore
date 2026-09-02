@@ -1,0 +1,10 @@
+# Environment & secret files
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Local Vector Store & Storage
+chroma_db/
+logs/*.csv

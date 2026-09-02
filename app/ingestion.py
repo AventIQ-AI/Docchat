@@ -189,6 +189,13 @@ def _ingest_new_document(
         )
         insert_chunks(doc_id, chunk_data, conn)
         conn.commit()
+
+        if getattr(cfg, "vector_db_type", "postgres") == "chroma":
+            try:
+                from app.chroma_repository import add_chunks_chroma
+                add_chunks_chroma(doc_id, file_name, source_path, chunks, embeddings, cfg)
+            except Exception as chroma_exc:
+                logger.warning("ChromaDB storage warning for '%s': %s", file_name, chroma_exc)
     except Exception as exc:
         conn.rollback()
         logger.error("DB error storing new document '%s': %s", file_name, exc)
